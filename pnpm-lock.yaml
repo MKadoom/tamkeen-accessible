@@ -18,8 +18,8 @@ importers:
         specifier: ^3.7.5
         version: 3.7.5
       lite-youtube-embed:
-        specifier: ^0.2.0
-        version: 0.2.0
+        specifier: ^0.3.4
+        version: 0.3.4
       mmenu-light:
         specifier: ^3.0.9
         version: 3.2.2
@@ -1991,8 +1991,8 @@ packages:
   lit@3.3.3:
     resolution: {integrity: sha512-fycuvZg/hkpozL00lm1pEJH5nN/lr9ZXd6mJI2HSN4+Bzc+LDNdEApJ6HFbPkdFNHLvOplIIuJvxkS4XUxqirw==}
 
-  lite-youtube-embed@0.2.0:
-    resolution: {integrity: sha512-XXXAk5sbvtjjwbie3XG+6HppgTm1HTGL/Uk9z9NkJH53o7puZLur434heHzAjkS60hZB3vT4ls25zl5rMiX4EA==}
+  lite-youtube-embed@0.3.4:
+    resolution: {integrity: sha512-aXgxpwK7AIW58GEbRzA8EYaY4LWvF3FKak6B9OtSJmuNyLhX2ouD4cMTxz/yR5HFInhknaYd2jLWOTRTvT8oAw==}
 
   loader-runner@4.3.2:
     resolution: {integrity: sha512-DFEqQ3ihfS9blba08cLfYf1NRAIEm+dDjic073DRDc3/JspI/8wYmtDsHwd3+4hwvdxSK7PGaElfTmm0awWJ4w==}
@@ -5109,7 +5109,7 @@ snapshots:
       lit-element: 4.2.2
       lit-html: 3.3.3
 
-  lite-youtube-embed@0.2.0: {}
+  lite-youtube-embed@0.3.4: {}
 
   loader-runner@4.3.2: {}
 
