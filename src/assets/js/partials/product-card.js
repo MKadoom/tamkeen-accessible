@@ -104,7 +104,7 @@ class ProductCard extends HTMLElement {
   }
 
   getWhatsappUrl() {
-    const number = String(window.tamkeenWhatsappNumber || '966556279752').replace(/\\D/g, '');
+    const number = String(window.tamkeenWhatsappNumber || '966556279752').replace(/\D/g, '');
     const price = this.product.is_on_sale
       ? this.getPriceFormat(this.product.sale_price)
       : this.getPriceFormat(this.product.starting_price || this.product.price);
@@ -113,7 +113,7 @@ class ProductCard extends HTMLElement {
       'اسم المنتج: ' + this.product.name,
       'رابط المنتج: ' + this.product.url,
       price ? 'السعر: ' + price : ''
-    ].filter(Boolean).join('\\n');
+    ].filter(Boolean).join('\n');
     return 'https://wa.me/' + number + '?text=' + encodeURIComponent(message);
   }
 
