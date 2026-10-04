@@ -103,6 +103,20 @@ class ProductCard extends HTMLElement {
     return price;
   }
 
+  getWhatsappUrl() {
+    const number = String(window.tamkeenWhatsappNumber || '966556279752').replace(/\D/g, '');
+    const price = this.product.is_on_sale
+      ? this.getPriceFormat(this.product.sale_price)
+      : this.getPriceFormat(this.product.starting_price || this.product.price);
+    const message = [
+      'مرحبًا، أرغب بالاستفسار أو الطلب لهذا المنتج',
+      'اسم المنتج: ' + this.product.name,
+      'رابط المنتج: ' + this.product.url,
+      price ? 'السعر: ' + price : ''
+    ].filter(Boolean).join('\n');
+    return 'https://wa.me/' + number + '?text=' + encodeURIComponent(message);
+  }
+
   getAddButtonLabel() {
     if(this.product.has_preorder_campaign) {
         return salla.lang.get('pages.products.pre_order_now');
@@ -276,15 +290,12 @@ class ProductCard extends HTMLElement {
 
           ${!this.hideAddBtn ?
             `<div class="s-product-card-content-footer gap-2">
-              <salla-add-product-button fill="outline" width="wide"
-                product-id="${this.product.id}"
-                product-status="${this.effectiveStatus}"
-                product-type="${this.product.type}">
-                ${this.product.status == 'sale' ?
-                    `<i class="text-base sicon-${ this.product.type == 'booking' ? 'calendar-time' : 'shopping-bag'}"></i>` : ``
-                  }
-                <span>${this.product.add_to_cart_label ? this.product.add_to_cart_label : this.getAddButtonLabel() }</span>
-              </salla-add-product-button>
+              <a class="s-button-element s-button-btn s-button-solid s-button-primary w-full justify-center"
+                 href="${this.getWhatsappUrl()}" target="_blank" rel="noopener noreferrer"
+                 aria-label="اطلب ${this.escapeHTML(this.product.name)} عبر واتساب">
+                <i class="sicon-whatsapp text-base"></i>
+                <span>اطلب عبر واتساب</span>
+              </a>
 
               ${this.horizontal || this.fullImage ?
                 `<salla-button 

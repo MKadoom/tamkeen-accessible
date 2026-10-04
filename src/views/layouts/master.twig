@@ -68,6 +68,7 @@
 
 
     <script data-cfasync="false">
+        window.tamkeenWhatsappNumber = "{{ (store.contacts.whatsapp|default(store.social.whatsapp|default('966556279752')))|replace({' ': '', '+': '', '-': '', '(': '', ')': ''}) }}";
         window.header_is_sticky = "{{theme.settings.get('header_is_sticky', 'Default Value')}}"
         window.imageZoom = "{{theme.settings.get('imageZoom')}}"
         window.can_access_wallet = {{ user.can_access_wallet | json_encode }}
