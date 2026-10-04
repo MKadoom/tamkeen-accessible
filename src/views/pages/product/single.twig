@@ -385,42 +385,16 @@
                     {% endif %}
 
                     <section class="sticky-product-bar bg-white p-5 rounded-md rounded-b-none">
-                        {# Quantity #}
-                        {% if product.is_hidden_quantity or product.type == 'booking' %}
-                            <input type="hidden" value="1" name="quantity" aria-label="Quantity"/>
-                        {% else %}
-                            <div class="sticky-product-bar__quantity center-between mb-5">
-                                <label class="form-label font-bold">
-                                    {{ trans('pages.products.quantity') }}
-                                </label>
-                                <salla-quantity-input max="{{ product.max_quantity }}" value="1" name="quantity" aria-label="Quantity"
-                                  class="border-gray-200 flex justify-end"></salla-quantity-input>
-                            </div>
-                        {% endif %}
-                        {# Add to cart #}
-                        <salla-add-product-button
-                                {{product.can_quick_buy ? 'quick-buy' : ''}}
-                                {{theme.settings.get('sticky_add_to_cart') ? ' support-sticky-bar' : ''}}
-                                {{product.is_require_shipping ? 'required-shipping' : ''}}
-                                {{product.has_preorder_campaign ? 'has-pre-order' : ''}}
-                                amount="{{ product.base_currency_price }}"
-                                class="mt-5 w-full sticky-product-bar__btn"
-                                product-status="{{ product.status }}"
-                                product-type="{{ product.type }}"
-                                product-id="{{ product.id }}"
-                                loader-position="end"
-                                type="submit"
-                                width="wide"
-                                {# Notify availability props#}
-                                {% if product.notify_availability %}
-                                    {{ product.notify_availability.subscribed ? 'is-subscribed' : '' }}
-                                    channels="{{ product.notify_availability.channels|join(',') }}"
-                                    subscribed-options="{{ product.notify_availability.subscribed_options|json_encode }}"
-                                    {{ product.notify_availability.options ? 'notify-options-availability' : '' }}
-                                {% endif %}>
-
-                            {{ product.add_to_cart_label }}
-                        </salla-add-product-button>
+                        {% set wa_number = (store.contacts.whatsapp|default(store.social.whatsapp|default('966556279752')))|replace({' ': '', '+': '', '-': '', '(': '', ')': ''}) %}
+                        {% set wa_price = product.is_on_sale ? product.sale_price|money : (product.starting_price ? product.starting_price|money : product.price|money) %}
+                        {% set wa_message = 'مرحبًا، أرغب بالاستفسار أو الطلب لهذا المنتج' ~ '\\n' ~ 'اسم المنتج: ' ~ product.name ~ '\\n' ~ 'رابط المنتج: ' ~ product.url ~ '\\n' ~ 'السعر: ' ~ wa_price %}
+                        <a href="https://wa.me/{{ wa_number }}?text={{ wa_message|url_encode }}"
+                           target="_blank" rel="noopener noreferrer"
+                           class="s-button-element s-button-btn s-button-solid s-button-primary w-full justify-center gap-2 py-4 text-base font-bold"
+                           aria-label="اطلب {{ product.name }} عبر واتساب">
+                            <i class="sicon-whatsapp text-lg"></i>
+                            <span>اطلب عبر واتساب</span>
+                        </a>
                     </section>
                     {% if product.is_giftable %}
                         <salla-gifting class="mt-5" widget-subtitle="{{ gifting_intro }}" product-id="{{ product.id }}" {{ product.is_require_shipping ? 'physical-products' : ''  }}></salla-gifting>
