@@ -6,65 +6,63 @@
 | cart.total       | string  | Formatted total ex: "١٠٠ ر.س"   |
 #}
 {% set important_links = theme.settings.get('important_links') %}
-<header class="store-header">
-  {# Top Nav #}
-  <div class="top-navbar">
-    <div class="container flex justify-between">
-      <div class="flex-1 flex items-center gap-2">
-          {# Footer Menu #}
-          {% if important_links %}
-            <salla-menu source="footer" topnav></salla-menu>
-          {% endif %}
-
-          {# Language & Currency Component #}
-          <div class="header-buttons">
-              {% if store.settings.is_multilingual or store.settings.currencies_enabled %}
-                  <salla-localization-modal show-trigger></salla-localization-modal>
-              {% endif %}
-          </div>
-
-          {# Scopes | Branches #}
-          {% if store.scope %}
-              <button class="btn--rounded-gray"
-                      onclick="salla.event.dispatch('scopes::open', {'mode': 'default'})">
-                  <i class="sicon-location rtl:ml-1 ltr:mr-1"></i> {{ store.scope.name }}
-              </button>
-          {% endif %}
-
-          {# Search bar #}
-          <div class="header-search flex-1">
-            <salla-search inline oval height="36"></salla-search>
-          </div>
+<header class="store-header tk-header">
+  {# Top bar: contacts, important pages, language/currency, branches #}
+  <div class="top-navbar tk-topbar">
+    <div class="container flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3 min-w-0">
+          <salla-contacts is-header class="tk-topbar__contacts"></salla-contacts>
       </div>
 
-      <salla-contacts is-header></salla-contacts>
+      <div class="flex items-center gap-2 shrink-0">
+          {% if important_links %}
+            <salla-menu source="footer" topnav class="hidden lg:block"></salla-menu>
+          {% endif %}
+
+          {% if store.settings.is_multilingual or store.settings.currencies_enabled %}
+              <div class="header-buttons">
+                  <salla-localization-modal show-trigger></salla-localization-modal>
+              </div>
+          {% endif %}
+
+          {% if store.scope %}
+              <button type="button" class="btn--rounded-gray"
+                      onclick="salla.event.dispatch('scopes::open', {'mode': 'default'})">
+                  <i class="sicon-location rtl:ml-1 ltr:mr-1" aria-hidden="true"></i> {{ store.scope.name }}
+              </button>
+          {% endif %}
+      </div>
     </div>
   </div>
 
-  {# Main Nav #}
-  <div id="mainnav" class="main-nav-container shadow-default bg-white flex items-center">
+  {# Main nav: logo · menu · search · account · WhatsApp #}
+  <div id="mainnav" class="main-nav-container tk-mainnav flex items-center">
       <div class="inner bg-inherit w-full">
           <div class="container">
-              <div class="flex items-stretch justify-between relative">
-                  <div class="flex items-center">
-                      <a class="lg:hidden mburger mburger--collapse leading-none rtl:ml-4 ltr:mr-4" href="#mobile-menu" aria-label="Open-menu">
-                        <i class="sicon-menu text-primary text-2xl"></i>
+              <div class="tk-mainnav__row">
+                  <div class="flex items-center min-w-0">
+                      <a class="lg:hidden mburger mburger--collapse tk-icon-btn rtl:ml-2 ltr:mr-2" href="#mobile-menu" aria-label="فتح القائمة">
+                        <i class="sicon-menu" aria-hidden="true"></i>
                       </a>
-                      <a class="navbar-brand" href="{{ store.url }}">
-                          <img fetchpriority="high" width="100%" height="100%" loading="eager" src="{{ store.logo|cdn(175) }}" alt="{{ store.name }} logo">
+                      <a class="navbar-brand tk-brand" href="{{ store.url }}" aria-label="{{ store.name }} — الصفحة الرئيسية">
+                          <img fetchpriority="high" width="160" height="56" loading="eager" src="{{ store.logo|cdn(240) }}" alt="{{ store.name }}">
                           {% if is_page('index') %}
                             <h1 class="sr-only">{{ store.name }}</h1>
-                          {% else %}
-                            <h2 class="sr-only">{{ store.name }}</h2>
                           {% endif %}
                       </a>
-                      <custom-main-menu></custom-main-menu>
+                      <custom-main-menu class="tk-main-menu"></custom-main-menu>
                   </div>
-                  <div class="flex items-center justify-end my-2.5">
-                      <salla-user-menu avatar-only show-header show-trigger></salla-user-menu>
-                      <salla-cart-summary class="ml-4 rtl:ml-[unset] rtl:mr-4">
-                        <i slot="icon" class="header-btn__icon icon sicon-shopping-bag"></i>
-                      </salla-cart-summary>
+
+                  <div class="flex items-center justify-end gap-2 sm:gap-3 shrink-0">
+                      <button type="button" class="tk-icon-btn" aria-label="البحث في المتجر"
+                              onclick="salla.event.dispatch('search::open')">
+                          <i class="sicon-search" aria-hidden="true"></i>
+                      </button>
+                      <salla-user-menu avatar-only show-header show-trigger class="tk-user-menu"></salla-user-menu>
+                      {% include 'pages.partials.tamkeen.wa-button' with {
+                          wa_label: 'اطلب عبر واتساب',
+                          wa_class: 'tk-btn--sm tk-header-wa'
+                      } %}
                   </div>
               </div>
           </div>

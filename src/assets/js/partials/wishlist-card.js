@@ -1,4 +1,6 @@
 
+import {buildProductWhatsappUrl, LABEL_ORDER, LABEL_INQUIRE} from './whatsapp';
+
 class WishlistCard extends HTMLElement {
 
     connectedCallback() {
@@ -8,6 +10,19 @@ class WishlistCard extends HTMLElement {
         }
         salla.onReady(() => this.render())
 
+    }
+
+    price() {
+        const value = this.product.is_on_sale ? this.product.sale_price : this.product.price;
+        return value > 0 ? salla.money(value) : '';
+    }
+
+    canOrder() {
+        return this.product.status === 'sale' && !this.product.is_out_of_stock && !!this.price();
+    }
+
+    whatsappUrl() {
+        return buildProductWhatsappUrl({name: this.product.name, url: this.product.url, price: this.price()});
     }
 
     render() {
@@ -36,8 +51,11 @@ class WishlistCard extends HTMLElement {
           </div>
         </div>
         <div class="flex items-center space-x-4 rtl:space-x-reverse">
-          <salla-add-product-button product-status="${this.product.status}" product-id="${this.product.id}" product-type="${this.product.type}" loader-position="center" fill="outline" class="flex-grow w-full sm:grow-0 md:w-40">
-          </salla-add-product-button>
+          <a class="tk-btn tk-btn--whatsapp tk-btn--sm flex-grow sm:grow-0 md:w-48"
+             href="${this.whatsappUrl()}" target="_blank" rel="noopener noreferrer">
+            <i class="sicon-whatsapp" aria-hidden="true"></i>
+            <span>${this.canOrder() ? LABEL_ORDER : LABEL_INQUIRE}</span>
+          </a>
           <salla-button loader-position="center" shape="icon" size="small" color="danger" class="btn--delete" onclick="salla.wishlist.remove(${this.product.id})">
             <i class="sicon-cancel"></i>
           </salla-button>
