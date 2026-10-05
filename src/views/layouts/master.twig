@@ -57,6 +57,16 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {{ theme.settings.set('placeholder', 'images/placeholder.png') }}
+    {#
+        Tamkeen: the WhatsApp number is resolved ONCE here and read everywhere else via
+        theme.settings.get('tamkeen_wa') (Twig) or window.tamkeen.whatsapp (JS).
+        Priority: theme setting `whatsapp_number` → store contacts → store social.
+    #}
+    {% set wa_raw = theme.settings.get('whatsapp_number')|default(store.contacts.whatsapp)|default(store.social.whatsapp)|default('') %}
+    {% set wa_digits = wa_raw|split('wa.me/')|last|split('?')|first|replace({' ': '', '+': '', '-': '', '(': '', ')': '', '/': '', '.': ''}) %}
+    {% if wa_digits starts with '00' %}{% set wa_digits = wa_digits|slice(2) %}{% endif %}
+    {% if wa_digits starts with '05' and wa_digits|length == 10 %}{% set wa_digits = '966' ~ wa_digits|slice(1) %}{% endif %}
+    {{ theme.settings.set('tamkeen_wa', wa_digits) }}
 
     <script defer data-cfasync="false" crossorigin="anonymous" src="{{ 'product-card.js'|asset }}"></script>
     <script defer src="{{ 'main-menu.js'|asset }}"></script>
@@ -68,7 +78,10 @@
 
 
     <script data-cfasync="false">
-        window.tamkeenWhatsappNumber = "{{ (store.contacts.whatsapp|default(store.social.whatsapp|default('966556279752')))|replace({' ': '', '+': '', '-': '', '(': '', ')': ''}) }}";
+        window.tamkeen = {
+            whatsapp: "{{ theme.settings.get('tamkeen_wa') }}",
+            contactUrl: "{{ store.url }}#tamkeen-contact"
+        };
         window.header_is_sticky = "{{theme.settings.get('header_is_sticky', 'Default Value')}}"
         window.imageZoom = "{{theme.settings.get('imageZoom')}}"
         window.can_access_wallet = {{ user.can_access_wallet | json_encode }}
@@ -87,24 +100,25 @@
     <style>
         :root {
             --font-main: '{{theme.font.name}}';
-            --color-primary: {{ theme.color.primary }};
-            --color-primary-dark: {{ theme.color.darker(0.15) }};
-            --color-primary-light: {{ theme.color.lighter(0.15) }};
-            --color-primary-reverse: {{ theme.color.reverse_text }};
+            /* Tamkeen identity — overrides the dashboard colour so every Salla component follows the brand */
+            --color-primary: #0F4C5C;
+            --color-primary-dark: #083B45;
+            --color-primary-light: #18B6A4;
+            --color-primary-reverse: #FFFFFF;
         }
     </style>
     {# tracking services, custom css feature. #}
     {% hook 'head:end' %}
 </head>
-<body id="app" class="theme-raed overflow-x-hidden {% hook 'body:classes' %}
+<body id="app" class="theme-raed theme-tamkeen overflow-x-hidden {% hook 'body:classes' %}
   {{ theme.settings.get('footer_is_dark') ? ' footer-is-dark' : ' footer-is-light' }}
   {{ theme.settings.get('topnav_is_dark') ? ' topnav-is-dark' : '' }}
   {{ theme.settings.get('sticky_add_to_cart') ? ' is-sticky-product-bar' : '' }}
   ">
+<a href="#main-content" class="tk-skip-link">تخطَّ إلى المحتوى</a>
 <noscript>
-    To get full functionality of this site you need to enable JavaScript. Here is how
-    <a href="https://www.enable-javascript.com/" rel="noreferrer"
-       target="_blank">To enable JavaScript on webpage</a>.
+    لتجربة كاملة يُرجى تفعيل JavaScript في المتصفح.
+    <a href="https://www.enable-javascript.com/" rel="noreferrer" target="_blank">طريقة التفعيل</a>.
 </noscript>
 <div class="app-inner flex flex-col min-h-full">
     {% hook 'body:start' %}
@@ -114,6 +128,7 @@
     </main>
     {% component 'footer.footer' %}
 </div>
+{% include 'pages.partials.tamkeen.whatsapp-float' %}
 {% hook 'body:end' %}
 {% if theme.settings.get('enable_add_product_toast', true) %}
     <salla-add-product-toast></salla-add-product-toast>
