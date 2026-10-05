@@ -1,4 +1,4 @@
-import BasePage from '../base-page';
+import {buildProductWhatsappUrl, LABEL_ORDER, LABEL_INQUIRE} from './whatsapp';
 class ProductCard extends HTMLElement {
   constructor(){
     super()
@@ -32,7 +32,6 @@ class ProductCard extends HTMLElement {
         this.remained = salla.lang.get('pages.products.remained');
         this.donationAmount = salla.lang.get('pages.products.donation_amount');
         this.startingPrice = salla.lang.get('pages.products.starting_price');
-        this.addToCart = salla.lang.get('pages.cart.add_to_cart');
         this.outOfStock = salla.lang.get('pages.products.out_of_stock');
 
         // re-render to update translations
@@ -103,39 +102,41 @@ class ProductCard extends HTMLElement {
     return price;
   }
 
-  getWhatsappUrl() {
-    const number = String(window.tamkeenWhatsappNumber || '966556279752').replace(/\D/g, '');
-    const price = this.product.is_on_sale
-      ? this.getPriceFormat(this.product.sale_price)
-      : this.getPriceFormat(this.product.starting_price || this.product.price);
-    const message = [
-      'مرحبًا، أرغب بالاستفسار أو الطلب لهذا المنتج',
-      'اسم المنتج: ' + this.product.name,
-      'رابط المنتج: ' + this.product.url,
-      price ? 'السعر: ' + price : ''
-    ].filter(Boolean).join('\n');
-    return 'https://wa.me/' + number + '?text=' + encodeURIComponent(message);
+  /** Visible price text for the WhatsApp message, or '' when the store hides the price. */
+  getWhatsappPrice() {
+    const raw = this.product.is_on_sale ? this.product.sale_price : (this.product.starting_price || this.product.price);
+    const formatted = this.getPriceFormat(raw);
+    if (!formatted || formatted === '-') {
+      return '';
+    }
+    return this.product.starting_price && !this.product.is_on_sale ? `${this.startingPrice || 'يبدأ من'} ${formatted}` : formatted;
   }
 
-  getAddButtonLabel() {
-    if(this.product.has_preorder_campaign) {
-        return salla.lang.get('pages.products.pre_order_now');
-    }
+  /** «اطلب» for products that can be ordered right away, «استفسر» for everything else. */
+  canOrderDirectly() {
+    return this.product.status === 'sale'
+      && !this.product.is_out_of_stock
+      && !!this.getWhatsappPrice()
+      && !this.hasOptions();
+  }
 
-    if (this.product.status === 'sale' && this.product.type === 'booking') {
-      return salla.lang.get('pages.cart.book_now');
-    }
+  hasOptions() {
+    return !!(this.product.has_options || this.product.options?.length);
+  }
 
-    if (this.product.status === 'sale') {
-      return salla.lang.get('pages.cart.add_to_cart');
+  getWhatsappUrl() {
+    let note = '';
+    if (this.hasOptions()) {
+      note = 'أرغب بمعرفة الخيارات المتاحة لهذا المنتج';
+    } else if (this.product.is_out_of_stock || this.product.status !== 'sale') {
+      note = 'أرغب بالاستفسار عن توفر هذا المنتج';
     }
-
-    if (this.product.type !== 'donating') {
-      return salla.lang.get('pages.products.out_of_stock');
-    }
-
-    // donating
-    return salla.lang.get('pages.products.donation_exceed');
+    return buildProductWhatsappUrl({
+      name: this.product.name,
+      url: this.product.url,
+      price: this.getWhatsappPrice(),
+      note,
+    });
   }
 
   getProps(){
@@ -205,25 +206,22 @@ class ProductCard extends HTMLElement {
         <div class="${!this.fullImage ? 's-product-card-image' : 's-product-card-image-full'}">
           <a href="${this.product?.url}" aria-label="${this.escapeHTML(this.product?.image?.alt || this.product.name)}">
            <img 
-              class="s-product-card-image-${salla.url.is_placeholder(this.product?.image?.url)
-                ? 'contain'
-                : this.fitImageHeight
-                ? this.fitImageHeight
-                : 'cover'}"
+              class="s-product-card-image-contain"
               src="${this.product?.image?.url || this.product?.thumbnail || this.placeholder || ''}"
               alt="${this.escapeHTML(this.product?.image?.alt || this.product.name)}"
               loading="lazy"
+              decoding="async"
             />
             ${!this.fullImage && !this.minimal ? this.getProductBadge() : ''}
           </a>
-          ${this.fullImage ? `<a href="${this.product?.url}" aria-label=${this.product.name} class="s-product-card-overlay"></a>`:''}
+          ${this.fullImage ? `<a href="${this.product?.url}" aria-label="${this.escapeHTML(this.product.name)}" class="s-product-card-overlay"></a>`:''}
           ${!this.horizontal && !this.fullImage ?
             `<salla-button
               shape="icon"
               fill="outline"
               color="light"
               name="product-name-${this.product.id}"
-              aria-label="Add or remove to wishlist"
+              aria-label="إضافة إلى المفضلة أو إزالتها"
               class="s-product-card-wishlist-btn animated ${this.isInWishlist ? 's-product-card-wishlist-added pulse-anime' : 'not-added un-favorited'}"
               onclick="salla.wishlist.toggle(${this.product.id})"
               data-id="${this.product.id}">
@@ -247,7 +245,7 @@ class ProductCard extends HTMLElement {
 
           <div class="s-product-card-content-main ${this.isSpecial ? 's-product-card-content-extra-padding' : ''}">
             <h3 class="s-product-card-content-title">
-              <a href="${this.product?.url}">${this.product?.name}</a>
+              <a href="${this.product?.url}">${this.escapeHTML(this.product?.name)}</a>
             </h3>
 
             ${this.product?.subtitle && !this.minimal ?
@@ -255,25 +253,10 @@ class ProductCard extends HTMLElement {
               : ``}
           </div>
           ${this.product?.donation && !this.minimal && !this.fullImage ?
-          `<salla-progress-bar donation=${JSON.stringify(this.product?.donation)}></salla-progress-bar>
-          <div class="s-product-card-donation-input">
-            ${this.product?.donation?.can_donate && this.product?.donation?.custom_amount_enabled  ?
-              `<label for="donation-amount-${this.product.id}">${this.donationAmount} <span>*</span></label>
-              <input
-                type="text"
-                onInput="${e => {
-                  salla.helpers.inputDigitsOnly(e.target);
-                  this.addBtn.donatingAmount = (e.target).value;
-                }}"
-                id="donation-amount-${this.product.id}"
-                name="donating_amount"
-                class="s-form-control"
-                placeholder="${this.donationAmount}" />`
-              : ``}
-          </div>`
+          `<salla-progress-bar donation='${this.escapeHTML(JSON.stringify(this.product?.donation))}'></salla-progress-bar>`
             : ''}
           <div class="s-product-card-content-sub ${this.isSpecial ? 's-product-card-content-extra-padding' : ''}">
-            ${this.product?.donation?.can_donate ? '' : this.getProductPrice()}
+            ${this.getProductPrice()}
             ${this.product?.rating?.stars ?
               `<div class="s-product-card-rating">
                 <i class="sicon-star2 before:text-orange-300"></i>
@@ -290,11 +273,11 @@ class ProductCard extends HTMLElement {
 
           ${!this.hideAddBtn ?
             `<div class="s-product-card-content-footer gap-2">
-              <a class="s-button-element s-button-btn s-button-solid s-button-primary w-full justify-center"
+              <a class="tk-btn tk-btn--whatsapp tk-btn--block tk-card-wa"
                  href="${this.getWhatsappUrl()}" target="_blank" rel="noopener noreferrer"
-                 aria-label="اطلب ${this.escapeHTML(this.product.name)} عبر واتساب">
-                <i class="sicon-whatsapp text-base"></i>
-                <span>اطلب عبر واتساب</span>
+                 aria-label="${this.canOrderDirectly() ? LABEL_ORDER : LABEL_INQUIRE}: ${this.escapeHTML(this.product.name)} (يفتح في نافذة جديدة)">
+                <i class="sicon-whatsapp" aria-hidden="true"></i>
+                <span>${this.canOrderDirectly() ? LABEL_ORDER : LABEL_INQUIRE}</span>
               </a>
 
               ${this.horizontal || this.fullImage ?
@@ -303,7 +286,7 @@ class ProductCard extends HTMLElement {
                   fill="outline" 
                   color="light" 
                   id="card-wishlist-btn-${this.product.id}-horizontal"
-                  aria-label="Add or remove to wishlist"
+                  aria-label="إضافة إلى المفضلة أو إزالتها"
                   class="s-product-card-wishlist-btn animated ${this.isInWishlist ? 's-product-card-wishlist-added pulse-anime' : 'not-added un-favorited'}"
                   onclick="salla.wishlist.toggle(${this.product.id})"
                   data-id="${this.product.id}">
@@ -314,15 +297,6 @@ class ProductCard extends HTMLElement {
             : ``}
         </div>
       `
-
-      this.querySelectorAll('[name="donating_amount"]').forEach((element)=>{
-        element.addEventListener('input', (e) => {
-          e.target
-            .closest(".s-product-card-content")
-            .querySelector("salla-add-product-button")
-            .setAttribute("donating-amount", e.target.value); 
-        });
-      })
 
       if (this.product?.quantity && this.isSpecial) {
         this.initCircleBar();

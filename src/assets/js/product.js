@@ -3,6 +3,7 @@ import BasePage from './base-page';
 import Fslightbox from 'fslightbox';
 window.fslightbox = Fslightbox;
 import { zoom } from './partials/image-zoom';
+import { buildProductWhatsappUrl, openWhatsapp, LABEL_ORDER, LABEL_INQUIRE } from './partials/whatsapp';
 
 class Product extends BasePage {
     onReady() {
@@ -15,6 +16,7 @@ class Product extends BasePage {
         });
 
         this.initProductOptionValidations();
+        this.initWhatsappOrder();
 
         if(imageZoom){
             // call the function when the page is ready
@@ -28,6 +30,78 @@ class Product extends BasePage {
       document.querySelector('.product-form')?.addEventListener('change', function(){
         this.reportValidity() && salla.product.getPrice(new FormData(this));
       });
+    }
+
+    /**
+     * Tamkeen: builds the WhatsApp message from the live form state —
+     * selected options (by their visible names), quantity and the current price.
+     */
+    initWhatsappOrder() {
+      const form = document.querySelector('.product-form');
+      const button = document.querySelector('.tk-product-wa');
+      const dataEl = document.getElementById('tk-product-data');
+      if (!form || !button || !dataEl) {
+        return;
+      }
+
+      try {
+        this.waData = JSON.parse(dataEl.textContent);
+      } catch (e) {
+        return; // keep the server-rendered fallback link
+      }
+      this.waButton = button;
+      this.waAvailable = true;
+
+      button.addEventListener('click', event => {
+        event.preventDefault();
+        // Required options must be chosen first; the browser highlights the missing field.
+        if (!form.reportValidity()) {
+          return;
+        }
+        openWhatsapp(buildProductWhatsappUrl({
+          name: this.waData.name,
+          url: this.waData.url,
+          price: this.currentPrice(form),
+          options: this.selectedOptions(new FormData(form)),
+          quantity: new FormData(form).get('quantity'),
+          note: this.waAvailable ? '' : 'أرغب بالاستفسار عن توفر هذا المنتج',
+        }));
+      });
+    }
+
+    selectedOptions(formData) {
+      return (this.waData.options || []).map(option => {
+        const values = [...formData.getAll(`options[${option.id}]`), ...formData.getAll(`options[${option.id}][]`)]
+          .filter(value => typeof value === 'string' && value.trim() !== '')
+          .map(value => {
+            const detail = (option.details || []).find(item => String(item.id) === String(value));
+            return detail ? detail.name : value.trim();
+          });
+        return {name: option.name, value: values.join('، ')};
+      }).filter(option => option.value);
+    }
+
+    currentPrice(form) {
+      if (!this.waData.price || !this.waAvailable) {
+        return ''; // price hidden by the store, or the selected variant is unavailable
+      }
+      const visible = [...form.querySelectorAll('.total-price')].find(el => el.offsetParent !== null);
+      const startingVisible = [...form.querySelectorAll('.starting-price-title')].some(el => el.offsetParent !== null);
+      if (!visible || startingVisible) {
+        return this.waData.price;
+      }
+      return visible.innerHTML;
+    }
+
+    setWhatsappAvailability(available) {
+      if (!this.waButton) {
+        return;
+      }
+      this.waAvailable = available;
+      const label = available && this.waData.canOrder ? LABEL_ORDER : LABEL_INQUIRE;
+      const span = this.waButton.querySelector('span');
+      span && (span.textContent = label);
+      this.waButton.setAttribute('aria-label', `${label}: ${this.waData.name} (يفتح في نافذة جديدة)`);
     }
 
     initImagesZooming() {
@@ -58,6 +132,7 @@ class Product extends BasePage {
 
     registerEvents() {
       salla.event.on('product::price.updated.failed',()=>{
+        this.setWhatsappAvailability(false);
         app.element('.price-wrapper').classList.add('hidden');
         const outOfStock = app.element('.out-of-stock');
         outOfStock.classList.remove('hidden');
@@ -66,6 +141,7 @@ class Product extends BasePage {
         outOfStock.classList.add('scale-pulse');
       })
       salla.product.event.onPriceUpdated((res) => {
+        this.setWhatsappAvailability(true);
 
         app.element('.out-of-stock').classList.add('hidden')
         app.element('.price-wrapper').classList.remove('hidden')
