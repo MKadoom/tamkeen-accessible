@@ -4,11 +4,248 @@
 | page             | object     |                                                                     |
 | page.title       | string     | *could be html                                                      |
 | page.slug        | string     | ex: "cat.show"                                                      |
+
+Tamkeen home page. Order:
+  1. Hero                      5. Merchant blocks from the theme editor ({% component home %})
+  2. All store categories      6. Facility accessibility solutions
+  3. Products per category     7. Services · 8. From need to solution
+  4. Featured products         9. About · 10. Contact & consultations
+Categories and products are fetched at runtime from the Salla API (see assets/js/home.js),
+so new categories appear automatically — nothing here references category names or IDs.
 #}
 {% extends "layouts.master" %}
 {% block content %}
-    {% component home %}
+    {% set settings = theme.settings %}
+
+    {# ───────────── 1. Hero ───────────── #}
+    {% set hero_image = settings.get('hero_image') %}
+    <section class="tk-hero" aria-labelledby="tk-hero-title">
+        <div class="container tk-hero__inner {{ hero_image ? 'tk-hero__inner--media' : '' }}">
+            <div class="tk-hero__content">
+                {% if settings.get('hero_eyebrow') %}
+                    <p class="tk-eyebrow tk-eyebrow--light">{{ settings.get('hero_eyebrow') }}</p>
+                {% endif %}
+                <h2 id="tk-hero-title" class="tk-hero__title">{{ settings.get('hero_title')|default('بالتمكين لا إعاقة') }}</h2>
+                {% if settings.get('hero_subtitle') %}
+                    <p class="tk-hero__text">{{ settings.get('hero_subtitle') }}</p>
+                {% endif %}
+                <div class="tk-hero__actions">
+                    <a href="#tk-categories" class="tk-btn tk-btn--accent tk-btn--lg">
+                        <span>تصفح المنتجات</span>
+                        <i class="sicon-keyboard_arrow_left" aria-hidden="true"></i>
+                    </a>
+                    {% include 'pages.partials.tamkeen.wa-button' with {
+                        wa_label: 'احصل على استشارة',
+                        wa_text: 'مرحبًا، أرغب بالحصول على استشارة حول حلول الوصول الشامل',
+                        wa_class: 'tk-btn--lg tk-btn--ghost-light'
+                    } %}
+                </div>
+            </div>
+
+            <div class="tk-hero__media" aria-hidden="{{ hero_image ? 'false' : 'true' }}">
+                {% if hero_image %}
+                    <img src="{{ hero_image }}" alt="{{ settings.get('hero_title')|default(store.name) }}" width="900" height="900" fetchpriority="high" loading="eager">
+                {% else %}
+                    {# Decorative brand emblem (no stock photo, no invented figures) #}
+                    <div class="tk-hero__emblem">
+                        <span class="tk-hero__ring tk-hero__ring--1"></span>
+                        <span class="tk-hero__ring tk-hero__ring--2"></span>
+                        <span class="tk-hero__ring tk-hero__ring--3"></span>
+                        <img src="{{ store.logo|cdn(320) }}" alt="" width="220" height="220" loading="eager" class="tk-hero__logo">
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    {# ───────────── 2. All categories (dynamic) ───────────── #}
+    <section id="tk-categories" class="tk-section" aria-labelledby="tk-categories-title">
+        <div class="container">
+            <header class="tk-section__head">
+                <p class="tk-eyebrow">تسوّق حسب الاحتياج</p>
+                <h2 id="tk-categories-title" class="tk-section__title">تصنيفات المتجر</h2>
+            </header>
+            <div class="tk-cat-grid" data-tk-cat-grid aria-live="polite" aria-busy="true">
+                {% for i in 1..6 %}
+                    <div class="tk-cat-card tk-skeleton" aria-hidden="true"></div>
+                {% endfor %}
+            </div>
+            <noscript>
+                <p class="tk-muted">يُرجى تفعيل JavaScript لعرض التصنيفات، أو تصفح التصنيفات من القائمة الرئيسية.</p>
+            </noscript>
+        </div>
+    </section>
+
+    {# ───────────── 3. Products of every category (dynamic, progressive) ───────────── #}
+    <section class="tk-section tk-section--tint" aria-label="منتجات التصنيفات"
+             data-tk-catalog
+             data-per-category="{{ settings.get('home_products_per_category', 8) }}"
+             data-batch="{{ settings.get('home_categories_per_batch', 3) }}">
+        <div class="container">
+            <div data-tk-cat-rails></div>
+            <div class="tk-rails-status" data-tk-rails-status aria-live="polite"></div>
+            <div class="tk-center">
+                <button type="button" class="tk-btn tk-btn--outline" data-tk-more-categories hidden>
+                    عرض المزيد من التصنيفات
+                </button>
+            </div>
+            <div data-tk-sentinel aria-hidden="true"></div>
+        </div>
+    </section>
+
+    {# ───────────── 4. Featured products ───────────── #}
+    {% set featured = settings.get('featured_products', []) %}
+    {% set featured_ids = [] %}
+    {% for item in featured %}
+        {% set featured_ids = featured_ids|merge([item.id is defined ? item.id : (item.value is defined ? item.value : item)]) %}
+    {% endfor %}
+    <section class="tk-section" aria-labelledby="tk-featured-title"
+             data-tk-rail
+             data-source="{{ featured_ids|length ? 'selected' : 'sales' }}"
+             {% if featured_ids|length %}data-source-value="[{{ featured_ids|join(',') }}]"{% endif %}
+             data-limit="{{ featured_ids|length ? featured_ids|length : 8 }}">
+        <div class="container">
+            <header class="tk-section__head">
+                <p class="tk-eyebrow">{{ featured_ids|length ? 'اختيارنا لكم' : 'من بيانات المتجر' }}</p>
+                <h2 id="tk-featured-title" class="tk-section__title">{{ featured_ids|length ? 'المنتجات المميزة' : 'الأكثر طلبًا' }}</h2>
+            </header>
+            <div class="tk-rail" data-tk-rail-track>
+                {% for i in 1..4 %}<div class="tk-card-skeleton tk-skeleton" aria-hidden="true"></div>{% endfor %}
+            </div>
+        </div>
+    </section>
+
+    {# ───────────── 5. Blocks the merchant adds from the theme editor ───────────── #}
+    <div class="tk-merchant-blocks">
+        {% component home %}
+    </div>
+
+    {# ───────────── 6. Accessibility solutions for facilities ───────────── #}
+    {% if settings.get('solutions_title') %}
+        <section class="tk-section tk-section--dark" aria-labelledby="tk-solutions-title">
+            <div class="container">
+                <header class="tk-section__head tk-section__head--split">
+                    <div>
+                        <p class="tk-eyebrow tk-eyebrow--light">للمنشآت والجهات</p>
+                        <h2 id="tk-solutions-title" class="tk-section__title">{{ settings.get('solutions_title') }}</h2>
+                    </div>
+                    {% if settings.get('solutions_text') %}
+                        <p class="tk-section__lead">{{ settings.get('solutions_text') }}</p>
+                    {% endif %}
+                </header>
+                {% include 'pages.partials.tamkeen.info-cards' with {
+                    items_raw: settings.get('solutions_items'),
+                    icons: ['sicon-capitol-building', 'sicon-location', 'sicon-wheelchair', 'sicon-shield-check'],
+                    variant: 'dark'
+                } %}
+                <div class="tk-center mt-10">
+                    {% include 'pages.partials.tamkeen.wa-button' with {
+                        wa_label: 'اطلب عرضًا لمنشأتك',
+                        wa_text: 'مرحبًا، أرغب بطلب عرض لحلول الوصول الشامل لمنشأتنا',
+                        wa_class: 'tk-btn--lg'
+                    } %}
+                </div>
+            </div>
+        </section>
+    {% endif %}
+
+    {# ───────────── 7. Services ───────────── #}
+    {% if settings.get('services_title') %}
+        <section class="tk-section" aria-labelledby="tk-services-title">
+            <div class="container">
+                <header class="tk-section__head">
+                    <p class="tk-eyebrow">ماذا نقدم</p>
+                    <h2 id="tk-services-title" class="tk-section__title">{{ settings.get('services_title') }}</h2>
+                    {% if settings.get('services_text') %}
+                        <p class="tk-section__lead">{{ settings.get('services_text') }}</p>
+                    {% endif %}
+                </header>
+                {% include 'pages.partials.tamkeen.info-cards' with {
+                    items_raw: settings.get('services_items'),
+                    icons: ['sicon-packed-box', 'sicon-chat-conversation-alt', 'sicon-home-heart', 'sicon-briefcase']
+                } %}
+            </div>
+        </section>
+    {% endif %}
+
+    {# ───────────── 8. From need to solution ───────────── #}
+    {% if settings.get('journey_title') %}
+        {% set steps = [] %}
+        {% for line in settings.get('journey_items')|default('')|replace({"\r": ""})|split("\n") %}
+            {% if line|trim %}{% set steps = steps|merge([line]) %}{% endif %}
+        {% endfor %}
+        {% if steps|length %}
+            <section class="tk-section tk-section--tint" aria-labelledby="tk-journey-title">
+                <div class="container">
+                    <header class="tk-section__head">
+                        <p class="tk-eyebrow">كيف نعمل</p>
+                        <h2 id="tk-journey-title" class="tk-section__title">{{ settings.get('journey_title') }}</h2>
+                    </header>
+                    <ol class="tk-steps">
+                        {% for line in steps %}
+                            {% set parts = line|split('|') %}
+                            <li class="tk-step">
+                                <span class="tk-step__num" aria-hidden="true">{{ loop.index }}</span>
+                                <h3 class="tk-step__title">{{ parts[0]|trim }}</h3>
+                                {% if parts[1] is defined %}<p class="tk-step__text">{{ parts|slice(1)|join('|')|trim }}</p>{% endif %}
+                            </li>
+                        {% endfor %}
+                    </ol>
+                </div>
+            </section>
+        {% endif %}
+    {% endif %}
+
+    {# ───────────── 9. About ───────────── #}
+    {% set about_text = settings.get('about_text') %}
+    {% if settings.get('about_title') and (about_text or store.description) %}
+        <section class="tk-section" aria-labelledby="tk-about-title">
+            <div class="container tk-about">
+                <div class="tk-about__brand" aria-hidden="true">
+                    <img src="{{ store.logo|cdn(320) }}" alt="" width="220" height="220" loading="lazy">
+                </div>
+                <div class="tk-about__body">
+                    <p class="tk-eyebrow">من نحن</p>
+                    <h2 id="tk-about-title" class="tk-section__title">{{ settings.get('about_title') }}</h2>
+                    <div class="tk-about__text">
+                        {% if about_text %}
+                            {{ about_text|nl2br }}
+                        {% else %}
+                            {{ store.description|raw }}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </section>
+    {% endif %}
+
+    {# ───────────── 10. Contact & consultations ───────────── #}
+    <section id="tamkeen-contact" class="tk-section tk-section--contact" aria-labelledby="tk-contact-title">
+        <div class="container">
+            <div class="tk-contact">
+                <div class="tk-contact__body">
+                    <p class="tk-eyebrow tk-eyebrow--light">الاستشارات والتواصل</p>
+                    <h2 id="tk-contact-title" class="tk-section__title">{{ settings.get('contact_title')|default('تواصل معنا') }}</h2>
+                    {% if settings.get('contact_text') %}
+                        <p class="tk-section__lead">{{ settings.get('contact_text') }}</p>
+                    {% endif %}
+                    <div class="tk-hero__actions">
+                        {% include 'pages.partials.tamkeen.wa-button' with {
+                            wa_label: 'ابدأ المحادثة عبر واتساب',
+                            wa_text: 'مرحبًا، أرغب بالحصول على استشارة',
+                            wa_class: 'tk-btn--lg'
+                        } %}
+                    </div>
+                </div>
+                <div class="tk-contact__channels">
+                    <salla-contacts></salla-contacts>
+                    <salla-social></salla-social>
+                </div>
+            </div>
+        </div>
+    </section>
 {% endblock %}
+
 {% block scripts %}
     <script defer src="{{ 'home.js' | asset }}"></script>
 {% endblock %}

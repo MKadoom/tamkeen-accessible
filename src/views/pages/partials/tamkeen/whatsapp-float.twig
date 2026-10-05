@@ -1,0 +1,10 @@
+{# Tamkeen — floating WhatsApp shortcut (hidden on product pages, which have their own sticky order bar) #}
+{% set wa_number = theme.settings.get('tamkeen_wa') %}
+{% if wa_number and page.slug != 'product.single' and page.slug != 'cart' %}
+    <a href="https://wa.me/{{ wa_number }}?text={{ ('مرحبًا، أرغب بالاستفسار عن منتجات وخدمات ' ~ store.name)|url_encode }}"
+       target="_blank" rel="noopener noreferrer"
+       class="tk-wa-float"
+       aria-label="تواصل معنا عبر واتساب (يفتح في نافذة جديدة)">
+        <i class="sicon-whatsapp" aria-hidden="true"></i>
+    </a>
+{% endif %}

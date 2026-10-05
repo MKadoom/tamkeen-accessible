@@ -26,6 +26,370 @@
     ],
     "settings": [
         {
+            "type": "static",
+            "format": "title",
+            "id": "tamkeen-label-brand",
+            "variant": "h6",
+            "value": "<div class='rounded-lg' style='background-color: #0F4C5C; display: flex; justify-content: center; align-items: center;padding: 15px;margin-bottom: 20px !important; flex-direction: column;gap: 15px;'><h6 style='color: #ffffff;font-size: 15px; font-weight: bold;'>هوية التمكين الشامل — التواصل وواتساب</h6></div>"
+        },
+        {
+            "type": "string",
+            "icon": "sicon-whatsapp",
+            "label": "رقم واتساب للطلبات",
+            "id": "whatsapp_number",
+            "value": "",
+            "format": "text",
+            "required": false,
+            "description": "اتركه فارغًا لاستخدام رقم واتساب من إعدادات تواصل المتجر. اكتب الرقم بالصيغة الدولية بدون + مثل 9665XXXXXXXX",
+            "placeholder": null,
+            "multilanguage": false,
+            "maxLength": 20
+        },
+        {
+            "type": "static",
+            "id": "tamkeen-line-1",
+            "format": "line"
+        },
+        {
+            "type": "static",
+            "format": "title",
+            "id": "tamkeen-label-hero",
+            "variant": "h6",
+            "value": "<div class='rounded-lg' style='background-color: #0F4C5C; display: flex; justify-content: center; align-items: center;padding: 15px;margin-bottom: 20px !important; flex-direction: column;gap: 15px;'><h6 style='color: #ffffff;font-size: 15px; font-weight: bold;'>الواجهة الرئيسية (Hero)</h6></div>"
+        },
+        {
+            "type": "string",
+            "icon": "sicon-format-text-alt",
+            "label": "نص صغير أعلى العنوان",
+            "id": "hero_eyebrow",
+            "value": "مؤسسة التمكين الشامل للتجارة",
+            "format": "text",
+            "required": false,
+            "description": null,
+            "placeholder": null,
+            "multilanguage": false,
+            "maxLength": 80
+        },
+        {
+            "type": "string",
+            "icon": "sicon-format-text-alt",
+            "label": "العنوان الرئيسي",
+            "id": "hero_title",
+            "value": "بالتمكين لا إعاقة",
+            "format": "text",
+            "required": false,
+            "description": null,
+            "placeholder": null,
+            "multilanguage": false,
+            "maxLength": 80
+        },
+        {
+            "type": "string",
+            "icon": "sicon-typography",
+            "label": "النص التوضيحي",
+            "id": "hero_subtitle",
+            "value": "حلول ومنتجات الوصول الشامل لذوي الإعاقة، لتأهيل البيئات العمرانية والحضرية والنقل لتكون صديقة للجميع.",
+            "format": "textarea",
+            "required": false,
+            "description": null,
+            "placeholder": null,
+            "multilanguage": false,
+            "maxLength": 300
+        },
+        {
+            "type": "string",
+            "icon": "sicon-image",
+            "label": "صورة الواجهة (اختيارية)",
+            "id": "hero_image",
+            "value": "",
+            "format": "image",
+            "required": false,
+            "description": "تظهر بجانب العنوان على الشاشات الكبيرة، وتُعرض كاملة دون قص. المقاس المقترح 900×900",
+            "placeholder": null,
+            "multilanguage": false
+        },
+        {
+            "type": "static",
+            "id": "tamkeen-line-2",
+            "format": "line"
+        },
+        {
+            "type": "static",
+            "format": "title",
+            "id": "tamkeen-label-catalog",
+            "variant": "h6",
+            "value": "<div class='rounded-lg' style='background-color: #0F4C5C; display: flex; justify-content: center; align-items: center;padding: 15px;margin-bottom: 20px !important; flex-direction: column;gap: 15px;'><h6 style='color: #ffffff;font-size: 15px; font-weight: bold;'>عرض التصنيفات والمنتجات في الرئيسية</h6></div>"
+        },
+        {
+            "id": "home_products_per_category",
+            "type": "items",
+            "format": "dropdown-list",
+            "label": "عدد المنتجات في كل دفعة داخل التصنيف",
+            "description": "يظهر زر «تحميل المزيد» لجلب الدفعة التالية دون حد أقصى.",
+            "icon": "sicon-list",
+            "selected": [
+                {
+                    "label": "8",
+                    "value": "8",
+                    "key": "ab2a5372-e2bc-5bca-8cbe-eb76ae627170"
+                }
+            ],
+            "options": [
+                {
+                    "label": "4",
+                    "value": "4",
+                    "key": "37f349ab-4512-573e-8ce3-ee96b612097e"
+                },
+                {
+                    "label": "8",
+                    "value": "8",
+                    "key": "ab2a5372-e2bc-5bca-8cbe-eb76ae627170"
+                },
+                {
+                    "label": "12",
+                    "value": "12",
+                    "key": "14759599-e7de-5e15-81d3-6eb2fa55c5dc"
+                }
+            ],
+            "source": "Manual",
+            "required": true
+        },
+        {
+            "id": "home_categories_per_batch",
+            "type": "items",
+            "format": "dropdown-list",
+            "label": "عدد التصنيفات التي تُحمّل في كل دفعة",
+            "description": "تُحمّل التصنيفات التالية تلقائيًا أثناء التمرير.",
+            "icon": "sicon-list",
+            "selected": [
+                {
+                    "label": "3",
+                    "value": "3",
+                    "key": "9799f7dc-f889-5102-b4c7-601094ce7ebf"
+                }
+            ],
+            "options": [
+                {
+                    "label": "2",
+                    "value": "2",
+                    "key": "557f4c32-54ac-55c2-9239-d6ad00d3dedb"
+                },
+                {
+                    "label": "3",
+                    "value": "3",
+                    "key": "9799f7dc-f889-5102-b4c7-601094ce7ebf"
+                },
+                {
+                    "label": "4",
+                    "value": "4",
+                    "key": "57ece0a5-d1f0-51ad-a041-971112fa5254"
+                },
+                {
+                    "label": "6",
+                    "value": "6",
+                    "key": "df99b8e4-b558-5222-aa9f-14a2d69473f9"
+                }
+            ],
+            "source": "Manual",
+            "required": true
+        },
+        {
+            "type": "items",
+            "icon": "sicon-keyboard_arrow_down",
+            "label": "المنتجات المميزة",
+            "id": "featured_products",
+            "format": "dropdown-list",
+            "description": "اختر المنتجات المميزة. إن تُركت فارغة يُعرض قسم «الأكثر طلبًا» من بيانات المتجر الفعلية، ويختفي القسم إن لم توجد منتجات.",
+            "selected": [],
+            "options": [],
+            "required": false,
+            "multichoice": true,
+            "source": "products",
+            "searchable": true,
+            "maxLength": 12,
+            "minLength": 0,
+            "value": []
+        },
+        {
+            "type": "static",
+            "id": "tamkeen-line-3",
+            "format": "line"
+        },
+        {
+            "type": "static",
+            "format": "title",
+            "id": "tamkeen-label-sections",
+            "variant": "h6",
+            "value": "<div class='rounded-lg' style='background-color: #0F4C5C; display: flex; justify-content: center; align-items: center;padding: 15px;margin-bottom: 20px !important; flex-direction: column;gap: 15px;'><h6 style='color: #ffffff;font-size: 15px; font-weight: bold;'>أقسام المؤسسة في الصفحة الرئيسية</h6></div>"
+        },
+        {
+            "type": "static",
+            "format": "description",
+            "id": "home_sections_note",
+            "value": "<p style='font-size:13px'>كل قسم يختفي تلقائيًا إذا تُرك عنوانه فارغًا. في حقول العناصر اكتب كل عنصر في سطر مستقل بالصيغة: <b>العنوان | الوصف</b></p>"
+        },
+        {
+            "type": "string",
+            "icon": "sicon-format-text-alt",
+            "label": "عنوان قسم حلول الوصول الشامل للمنشآت",
+            "id": "solutions_title",
+            "value": "حلول الوصول الشامل للمنشآت",
+            "format": "text",
+            "required": false,
+            "description": null,
+            "placeholder": null,
+            "multilanguage": false,
+            "maxLength": 80
+        },
+        {
+            "type": "string",
+            "icon": "sicon-typography",
+            "label": "وصف قسم الحلول",
+            "id": "solutions_text",
+            "value": "نساعد الجهات الحكومية والخاصة والمنشآت التعليمية والصحية والتجارية على أن تكون بيئاتها ميسّرة وصديقة لذوي الإعاقة.",
+            "format": "textarea",
+            "required": false,
+            "description": null,
+            "placeholder": null,
+            "multilanguage": false,
+            "maxLength": 400
+        },
+        {
+            "type": "string",
+            "icon": "sicon-list",
+            "label": "عناصر قسم الحلول (عنصر في كل سطر)",
+            "id": "solutions_items",
+            "value": "البيئات العمرانية | تجهيز المداخل والممرات والمرافق لتكون قابلة للوصول والاستخدام باستقلالية.\nالبيئات الحضرية | حلول ميسّرة للمساحات العامة والأرصفة والمواقف.\nالنقل الميسّر | منتجات وحلول تجعل التنقل آمنًا ومريحًا لذوي الإعاقة.\nالسلامة والإخلاء | معدات تساعد على إخلاء ذوي الإعاقة بأمان في حالات الطوارئ.",
+            "format": "textarea",
+            "required": false,
+            "description": null,
+            "placeholder": null,
+            "multilanguage": false,
+            "maxLength": 1500
+        },
+        {
+            "type": "string",
+            "icon": "sicon-format-text-alt",
+            "label": "عنوان قسم خدمات المؤسسة",
+            "id": "services_title",
+            "value": "خدمات المؤسسة",
+            "format": "text",
+            "required": false,
+            "description": null,
+            "placeholder": null,
+            "multilanguage": false,
+            "maxLength": 80
+        },
+        {
+            "type": "string",
+            "icon": "sicon-typography",
+            "label": "وصف قسم الخدمات",
+            "id": "services_text",
+            "value": "نرافقك من فهم الاحتياج حتى وصول الحل المناسب.",
+            "format": "textarea",
+            "required": false,
+            "description": null,
+            "placeholder": null,
+            "multilanguage": false,
+            "maxLength": 400
+        },
+        {
+            "type": "string",
+            "icon": "sicon-list",
+            "label": "عناصر قسم الخدمات (عنصر في كل سطر)",
+            "id": "services_items",
+            "value": "توريد منتجات الوصول الشامل | أجهزة ومستلزمات مساعدة مختارة لذوي الإعاقة.\nالاستشارات | توجيه متخصص لاختيار الحلول الأنسب لاحتياج الفرد أو المنشأة.\nتأهيل المنشآت | المساعدة في تهيئة البيئات لتكون صديقة لذوي الإعاقة.\nطلبات المنشآت والجهات | تجهيز عروض للطلبات المؤسسية والكميات.",
+            "format": "textarea",
+            "required": false,
+            "description": null,
+            "placeholder": null,
+            "multilanguage": false,
+            "maxLength": 1500
+        },
+        {
+            "type": "string",
+            "icon": "sicon-format-text-alt",
+            "label": "عنوان قسم «من الاحتياج إلى الحل»",
+            "id": "journey_title",
+            "value": "من الاحتياج إلى الحل",
+            "format": "text",
+            "required": false,
+            "description": null,
+            "placeholder": null,
+            "multilanguage": false,
+            "maxLength": 80
+        },
+        {
+            "type": "string",
+            "icon": "sicon-list",
+            "label": "خطوات القسم (خطوة في كل سطر)",
+            "id": "journey_items",
+            "value": "شاركنا الاحتياج | تواصل معنا عبر واتساب وأخبرنا عن الاحتياج أو المنتج المطلوب.\nنقترح الحل المناسب | نساعدك في اختيار المنتج أو الحل الأنسب مع توضيح التفاصيل.\nنؤكد الطلب | نرسل لك تفاصيل الطلب والسعر وطريقة الدفع والتوصيل.\nيصل الحل إليك | نتابع معك حتى استلام الطلب.",
+            "format": "textarea",
+            "required": false,
+            "description": null,
+            "placeholder": null,
+            "multilanguage": false,
+            "maxLength": 1500
+        },
+        {
+            "type": "string",
+            "icon": "sicon-format-text-alt",
+            "label": "عنوان قسم نبذة عن المؤسسة",
+            "id": "about_title",
+            "value": "عن مؤسسة التمكين الشامل",
+            "format": "text",
+            "required": false,
+            "description": null,
+            "placeholder": null,
+            "multilanguage": false,
+            "maxLength": 80
+        },
+        {
+            "type": "string",
+            "icon": "sicon-typography",
+            "label": "نص النبذة",
+            "id": "about_text",
+            "value": "",
+            "format": "textarea",
+            "required": false,
+            "description": "اتركه فارغًا لاستخدام وصف المتجر من إعدادات سلة.",
+            "placeholder": null,
+            "multilanguage": false,
+            "maxLength": 1200
+        },
+        {
+            "type": "string",
+            "icon": "sicon-format-text-alt",
+            "label": "عنوان قسم التواصل والاستشارات",
+            "id": "contact_title",
+            "value": "تواصل معنا واحصل على استشارة",
+            "format": "text",
+            "required": false,
+            "description": null,
+            "placeholder": null,
+            "multilanguage": false,
+            "maxLength": 80
+        },
+        {
+            "type": "string",
+            "icon": "sicon-typography",
+            "label": "نص قسم التواصل",
+            "id": "contact_text",
+            "value": "سواء كنت فردًا تبحث عن منتج مناسب، أو جهة تريد تأهيل منشأتها، فريقنا جاهز لمساعدتك.",
+            "format": "textarea",
+            "required": false,
+            "description": null,
+            "placeholder": null,
+            "multilanguage": false,
+            "maxLength": 400
+        },
+        {
+            "type": "static",
+            "id": "tamkeen-line-4",
+            "format": "line"
+        },
+        {
             "id": "squar_photo_bg_image_size",
             "type": "items",
             "format": "dropdown-list",
@@ -1130,7 +1494,7 @@
     ],
     "support_url": null,
     "description": {
-        "ar": "",
-        "en": ""
+        "ar": "ثيم مؤسسة التمكين الشامل للتجارة — متجر وصول شامل بطلب عبر واتساب",
+        "en": "Tamkeen Accessible store theme with WhatsApp ordering"
     }
 }

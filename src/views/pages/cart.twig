@@ -55,6 +55,15 @@
             <salla-breadcrumb></salla-breadcrumb>
         </nav>
         <h1 class="sr-only">{{ trans('blocks.header.cart') }}</h1>
+
+        {# Tamkeen — explain WhatsApp ordering #}
+        <div class="tk-notice" role="note">
+            <span class="tk-notice__icon" aria-hidden="true"><i class="sicon-whatsapp"></i></span>
+            <div>
+                <p class="tk-notice__title">الطلب في متجرنا يتم عبر واتساب</p>
+                <p class="tk-notice__text">أرسل تفاصيل منتجاتك عبر واتساب، ويتواصل معك فريقنا لتأكيد الطلب والسعر وطريقة الدفع والتوصيل.</p>
+            </div>
+        </div>
         <salla-conditional-offer></salla-conditional-offer>
         <div class="pt-5 flex flex-col items-start lg:flex-row pb-6 lg:pb-20">
             <div class="main-content w-full lg:w-[calc(100%-384px)]">
@@ -251,6 +260,18 @@
                         <div class="flex justify-between text-lg mb-5">
                             <span class="text-gray-500">{{ trans('pages.cart.final_total') }}</span>
                             <b data-cart-total>{{ cart.total|money }}</b>
+                        </div>
+
+                        {% set tk_cart_text = 'مرحبًا، أرغب بالطلب للمنتجات التالية:' %}
+                        {% for item in cart.items %}
+                            {% set tk_cart_text = tk_cart_text ~ "\n▪️ " ~ item.product_name ~ ' × ' ~ item.quantity ~ "\n   " ~ item.url %}
+                        {% endfor %}
+                        <div class="mb-4">
+                            {% include 'pages.partials.tamkeen.wa-button' with {
+                                wa_label: 'أرسل الطلب عبر واتساب',
+                                wa_text: tk_cart_text,
+                                wa_class: 'tk-btn--lg tk-btn--block'
+                            } %}
                         </div>
 
                         <div class="cart-submit-wrap">
