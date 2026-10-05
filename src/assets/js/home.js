@@ -10,6 +10,45 @@ const esc = (value = '') => String(value)
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
+/**
+ * Theme settings arrive in different shapes depending on whether the merchant saved the theme
+ * editor (scalar, {value}, [{id}], nested arrays…). These helpers read them defensively.
+ */
+const parseJson = (raw, fallback) => {
+    try {
+        return raw ? JSON.parse(raw) : fallback;
+    } catch (e) {
+        return fallback;
+    }
+};
+
+const pickValue = value => {
+    while (Array.isArray(value)) {
+        value = value[0];
+    }
+    return value && typeof value === 'object' ? (value.value ?? value.id ?? value.key) : value;
+};
+
+const settingNumber = (raw, fallback) => {
+    const number = Number(pickValue(parseJson(raw, raw)));
+    return Number.isFinite(number) && number > 0 ? number : fallback;
+};
+
+/** Collects product IDs from any shape the product picker setting may take. */
+const productIds = value => {
+    if (value === null || value === undefined || value === '') {
+        return [];
+    }
+    if (Array.isArray(value)) {
+        return value.flatMap(productIds);
+    }
+    if (typeof value === 'object') {
+        return productIds(value.id ?? value.value ?? value.product_id ?? null);
+    }
+    const id = Number(value);
+    return Number.isFinite(id) && id > 0 ? [id] : [];
+};
+
 /** Runs `callback` once when `element` gets close to the viewport. */
 function whenNear(element, callback) {
     if (!('IntersectionObserver' in window)) {
@@ -119,16 +158,13 @@ class Home extends BasePage {
     initStaticRails() {
         document.querySelectorAll('[data-tk-rail]').forEach(section => {
             const track = section.querySelector('[data-tk-rail-track]');
-            let sourceValue = section.dataset.sourceValue || null;
-            try {
-                sourceValue = sourceValue ? JSON.parse(sourceValue) : null;
-            } catch (e) {
-                sourceValue = null;
-            }
+            const featured = [...new Set(productIds(parseJson(section.dataset.featured, [])))];
+            const options = featured.length
+                ? {source: 'selected', sourceValue: featured, limit: featured.length}
+                : {source: section.dataset.source, sourceValue: null, limit: Number(section.dataset.limit) || 8};
+
             whenNear(section, () => new ProductRail(track, {
-                source: section.dataset.source,
-                sourceValue,
-                limit: Number(section.dataset.limit) || 8,
+                ...options,
                 onEmpty: () => section.remove(),
             }).load());
         });
@@ -194,8 +230,8 @@ class Home extends BasePage {
         const rails = catalog.querySelector('[data-tk-cat-rails]');
         const moreBtn = catalog.querySelector('[data-tk-more-categories]');
         const sentinel = catalog.querySelector('[data-tk-sentinel]');
-        const perCategory = Number(catalog.dataset.perCategory) || 8;
-        const batch = Number(catalog.dataset.batch) || 3;
+        const perCategory = settingNumber(catalog.dataset.perCategory, 8);
+        const batch = settingNumber(catalog.dataset.batch, 3);
         const queue = [...categories];
 
         let observer = null;
