@@ -387,7 +387,14 @@
                         Options, quantity and the live price are read by assets/js/product.js at click time;
                         the href below is a no-JS fallback built from the same store number.
                     #}
-                    {% set tk_has_price = (product.is_on_sale ? product.sale_price : (product.starting_price ?: product.price)) > 0 %}
+                    {#
+                        Prices are Money objects on Salla (and `-` when hidden), so never compare them as numbers:
+                        format with |money (e.g. "5,000 SAR", "0 SAR") and look for a non-zero digit.
+                    #}
+                    {% set tk_raw_price = product.is_on_sale ? product.sale_price : (product.starting_price ? product.starting_price : product.price) %}
+                    {% set tk_price_text = tk_raw_price|money|replace({'&nbsp;': ' '})|striptags|trim %}
+                    {# Salla's Twig sandbox has no `matches`: a price is shown when stripping digits 1-9 changes the text #}
+                    {% set tk_has_price = tk_price_text|replace({'1': '', '2': '', '3': '', '4': '', '5': '', '6': '', '7': '', '8': '', '9': '', '١': '', '٢': '', '٣': '', '٤': '', '٥': '', '٦': '', '٧': '', '٨': '', '٩': ''}) != tk_price_text %}
                     {% set tk_can_order = product.status == 'sale' and not product.is_out_of_stock and tk_has_price %}
                     {% set tk_price = tk_has_price ? (product.is_on_sale ? product.sale_price|money : (product.starting_price ? trans('pages.products.starting_price') ~ ' ' ~ product.starting_price|money : product.price|money)) : '' %}
                     {% set tk_price = tk_price|replace({'&nbsp;': ' ', '<i class="sicon-sar"></i>': ' ر.س'})|striptags|trim %}
