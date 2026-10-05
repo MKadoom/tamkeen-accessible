@@ -1,0 +1,18 @@
+{#
+    Tamkeen — reusable WhatsApp button.
+    Params (all optional):
+      wa_text   message text (default: general inquiry)
+      wa_label  visible label (default: «تواصل عبر واتساب»)
+      wa_class  extra classes (default: primary WhatsApp style)
+      wa_aria   accessible label
+#}
+{% set wa_number = theme.settings.get('tamkeen_wa') %}
+{% set wa_text = wa_text|default('مرحبًا، أرغب بالاستفسار عن منتجات وخدمات ' ~ store.name) %}
+{% set wa_href = wa_number ? 'https://wa.me/' ~ wa_number ~ '?text=' ~ (wa_text|url_encode) : store.url ~ '#tamkeen-contact' %}
+<a href="{{ wa_href }}"
+   {% if wa_number %}target="_blank" rel="noopener noreferrer"{% endif %}
+   class="tk-btn tk-btn--whatsapp {{ wa_class|default('') }}"
+   aria-label="{{ wa_aria|default(wa_label|default('تواصل عبر واتساب')) }}{{ wa_number ? ' (يفتح في نافذة جديدة)' : '' }}">
+    <i class="sicon-whatsapp" aria-hidden="true"></i>
+    <span>{{ wa_label|default('تواصل عبر واتساب') }}</span>
+</a>

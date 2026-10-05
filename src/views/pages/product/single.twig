@@ -99,7 +99,7 @@
     #}
     <div class="s-blocks-wrapper s-before-product-info !mt-0">{% hook 'product.single.before_product_info' %}</div>
 
-    <div class="container container--product-details">
+    <div class="container container--product-details tk-product">
         <div class="flex flex-col items-start md:flex-row" id="product-{{ product.id }}">
             <div class="sidebar md:sticky top-24 w-full md:!w-2/4 rtl:ml-8 ltr:mr-8 mb-5 md:mb-0 overflow-hidden shrink-0">
                 {% set has_many_images = product.images|length > 1 %}
@@ -206,7 +206,7 @@
                     </div>
                 {% endif %}
 
-                <h1 class="text-xl md:text-2xl leading-10 font-bold mb-6 text-gray-800">{{ product.name }}</h1>
+                <h1 class="tk-product__title">{{ product.name }}</h1>
 
                 {% if product.subtitle %}
                     <h2 class="product-entry__sub-title text-sm text-gray-500 leading-6 mb-2.5">
@@ -275,7 +275,7 @@
                             shape="icon"
                             fill="outline"
                             color="light"
-							aria-label="add to wishlist">
+							aria-label="إضافة إلى المفضلة">
                         <i class="sicon-heart"></i>
                     </salla-button>
                 </div>
@@ -308,8 +308,6 @@
                 {% endif %}
                 {% hook 'product:single.description' %}
 
-                {# Installment Methods #}
-                <salla-installment price="{{ product.price }}"></salla-installment>
                 {% if product.has_metadata %}
                 <salla-metadata></salla-metadata>
                 {% endif %}
@@ -343,7 +341,7 @@
               {# End Digital Files Settings #}
 
                 <form class="form product-form" enctype="multipart/form-data" method="post"
-                      onsubmit="return salla.form.onSubmit('cart.addItem', event)" >
+                      onsubmit="return false">
                     <input type="hidden" name="id" value="{{ product.id }}">
 
 
@@ -384,17 +382,53 @@
                         </section>
                     {% endif %}
 
-                    <section class="sticky-product-bar bg-white p-5 rounded-md rounded-b-none">
-                        {% set wa_number = (store.contacts.whatsapp|default(store.social.whatsapp|default('966556279752')))|replace({' ': '', '+': '', '-': '', '(': '', ')': ''}) %}
-                        {% set wa_price = product.is_on_sale ? product.sale_price|money : (product.starting_price ? product.starting_price|money : product.price|money) %}
-                        {% set wa_message = 'مرحبًا، أرغب بالاستفسار أو الطلب لهذا المنتج' ~ ' | ' ~ 'اسم المنتج: ' ~ product.name ~ ' | ' ~ 'رابط المنتج: ' ~ product.url ~ ' | ' ~ 'السعر: ' ~ wa_price %}
-                        <a href="https://wa.me/{{ wa_number }}?text={{ wa_message|url_encode }}"
-                           target="_blank" rel="noopener noreferrer"
-                           class="s-button-element s-button-btn s-button-solid s-button-primary w-full justify-center gap-2 py-4 text-base font-bold"
-                           aria-label="اطلب {{ product.name }} عبر واتساب">
-                            <i class="sicon-whatsapp text-lg"></i>
-                            <span>اطلب عبر واتساب</span>
-                        </a>
+                    {#
+                        Tamkeen — WhatsApp ordering replaces add-to-cart.
+                        Options, quantity and the live price are read by assets/js/product.js at click time;
+                        the href below is a no-JS fallback built from the same store number.
+                    #}
+                    {% set tk_has_price = (product.is_on_sale ? product.sale_price : (product.starting_price ?: product.price)) > 0 %}
+                    {% set tk_can_order = product.status == 'sale' and not product.is_out_of_stock and tk_has_price %}
+                    {% set tk_price = tk_has_price ? (product.is_on_sale ? product.sale_price|money : (product.starting_price ? trans('pages.products.starting_price') ~ ' ' ~ product.starting_price|money : product.price|money)) : '' %}
+                    {% set tk_price = tk_price|replace({'&nbsp;': ' ', '<i class="sicon-sar"></i>': ' ر.س'})|striptags|trim %}
+                    {% set tk_options = [] %}
+                    {% for option in product.options %}
+                        {% set tk_details = [] %}
+                        {% for detail in option.details %}
+                            {% set tk_details = tk_details|merge([{id: detail.id, name: detail.name}]) %}
+                        {% endfor %}
+                        {% set tk_options = tk_options|merge([{id: option.id, name: option.name, type: option.type, details: tk_details}]) %}
+                    {% endfor %}
+                    <script type="application/json" id="tk-product-data">{{ {
+                        name: product.name,
+                        url: product.url,
+                        price: tk_price,
+                        canOrder: tk_can_order,
+                        options: tk_options
+                    }|json_encode|raw }}</script>
+
+                    <section class="sticky-product-bar tk-order-box">
+                        {% if product.is_hidden_quantity or product.type == 'booking' or product.type == 'donating' %}
+                            <input type="hidden" value="1" name="quantity"/>
+                        {% else %}
+                            <div class="sticky-product-bar__quantity tk-order-box__qty">
+                                <label class="form-label font-bold" for="tk-qty">{{ trans('pages.products.quantity') }}</label>
+                                <salla-quantity-input id="tk-qty" max="{{ product.max_quantity }}" value="1" name="quantity" aria-label="{{ trans('pages.products.quantity') }}"
+                                  class="flex justify-end"></salla-quantity-input>
+                            </div>
+                        {% endif %}
+
+                        {% set tk_label = tk_can_order ? 'اطلب عبر واتساب' : 'استفسر عبر واتساب' %}
+                        {% include 'pages.partials.tamkeen.wa-button' with {
+                            wa_label: tk_label,
+                            wa_aria: tk_label ~ ': ' ~ product.name,
+                            wa_text: 'مرحبًا، أرغب بالاستفسار أو الطلب لهذا المنتج' ~ "\n\n▪️ المنتج: " ~ product.name ~ (tk_price ? "\n▪️ السعر: " ~ tk_price : '') ~ "\n▪️ الرابط: " ~ product.url,
+                            wa_class: 'tk-btn--lg tk-btn--block sticky-product-bar__btn tk-product-wa'
+                        } %}
+                        <p class="tk-order-box__hint">
+                            <i class="sicon-shield-check" aria-hidden="true"></i>
+                            {{ product.options|length ? 'اختر الخيارات المناسبة وستُضاف تلقائيًا إلى رسالة الطلب.' : 'ستُرسل تفاصيل المنتج تلقائيًا، ويؤكد فريقنا الطلب والسعر والتوصيل معك.' }}
+                        </p>
                     </section>
                     {% if product.is_giftable %}
                         <salla-gifting class="mt-5" widget-subtitle="{{ gifting_intro }}" product-id="{{ product.id }}" {{ product.is_require_shipping ? 'physical-products' : ''  }}></salla-gifting>
@@ -402,7 +436,6 @@
                 </form>
 
                 {% hook 'product:single.description.end' %}
-                <salla-quick-order class="mt-5 md:-mb-2 block"></salla-quick-order>
             </div>
         </div>
         <salla-offer></salla-offer>

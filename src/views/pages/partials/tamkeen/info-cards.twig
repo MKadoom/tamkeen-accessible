@@ -1,0 +1,25 @@
+{#
+    Tamkeen — card grid built from a textarea setting.
+    Each non-empty line: «Title | Description».
+    Params: items_raw (string), icons (string[] — cycled), variant ('dark' | null)
+#}
+{% set lines = [] %}
+{% for line in items_raw|default('')|replace({"\r": ""})|split("\n") %}
+    {% if line|trim %}{% set lines = lines|merge([line]) %}{% endif %}
+{% endfor %}
+{% if lines|length %}
+    <ul class="tk-info-grid {{ variant|default('') == 'dark' ? 'tk-info-grid--dark' : '' }}" role="list">
+        {% for line in lines %}
+            {% set parts = line|split('|') %}
+            <li class="tk-info-card">
+                {% if icons|default([])|length %}
+                    <span class="tk-info-card__icon" aria-hidden="true"><i class="{{ icons[(loop.index0) % (icons|length)] }}"></i></span>
+                {% endif %}
+                <h3 class="tk-info-card__title">{{ parts[0]|trim }}</h3>
+                {% if parts[1] is defined %}
+                    <p class="tk-info-card__text">{{ parts|slice(1)|join('|')|trim }}</p>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+{% endif %}
