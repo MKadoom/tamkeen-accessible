@@ -163,9 +163,24 @@ class Home extends BasePage {
                 ? {source: 'selected', sourceValue: featured, limit: featured.length}
                 : {source: section.dataset.source, sourceValue: null, limit: Number(section.dataset.limit) || 8};
 
+            // Chosen products can all be unavailable (e.g. out of stock and hidden by the store):
+            // fall back once to the store's best sellers instead of an empty section.
+            const fallback = () => {
+                const eyebrow = section.querySelector('[data-tk-featured-eyebrow]');
+                const title = section.querySelector('[data-tk-featured-title]');
+                eyebrow && (eyebrow.textContent = 'من بيانات المتجر');
+                title && (title.textContent = 'الأكثر طلبًا');
+                new ProductRail(track, {
+                    source: section.dataset.source,
+                    sourceValue: null,
+                    limit: Number(section.dataset.limit) || 8,
+                    onEmpty: () => section.remove(),
+                }).load();
+            };
+
             whenNear(section, () => new ProductRail(track, {
                 ...options,
-                onEmpty: () => section.remove(),
+                onEmpty: featured.length ? fallback : () => section.remove(),
             }).load());
         });
     }
