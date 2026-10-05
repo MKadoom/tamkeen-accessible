@@ -40,11 +40,15 @@ so new categories appear automatically — nothing here references category name
     {% set cfg = {} %}
     {% for key, fallback in tk_defaults %}
         {% set current = settings.get(key) %}
-        {% set cfg = cfg|merge({(key): current is null ? fallback : current}) %}
+        {# Saved values can also arrive as arrays (e.g. multilingual {ar: …}); never print an array #}
+        {% set value = current is null ? fallback : (current is iterable ? (current.ar is defined ? current.ar : fallback) : current) %}
+        {% set cfg = cfg|merge({(key): value}) %}
     {% endfor %}
 
     {# ───────────── 1. Hero ───────────── #}
     {% set hero_image = settings.get('hero_image') %}
+    {% if hero_image is iterable %}{% set hero_image = hero_image.url is defined ? hero_image.url : null %}{% endif %}
+    {% if hero_image is iterable %}{% set hero_image = null %}{% endif %}
     <section class="tk-hero" aria-labelledby="tk-hero-title">
         <div class="container tk-hero__inner {{ hero_image ? 'tk-hero__inner--media' : '' }}">
             <div class="tk-hero__content">
@@ -105,8 +109,8 @@ so new categories appear automatically — nothing here references category name
     {# ───────────── 3. Products of every category (dynamic, progressive) ───────────── #}
     <section class="tk-section tk-section--tint" aria-label="منتجات التصنيفات"
              data-tk-catalog
-             data-per-category="{{ settings.get('home_products_per_category', 8) }}"
-             data-batch="{{ settings.get('home_categories_per_batch', 3) }}">
+             data-per-category="{{ settings.get('home_products_per_category', 8)|json_encode|e('html_attr') }}"
+             data-batch="{{ settings.get('home_categories_per_batch', 3)|json_encode|e('html_attr') }}">
         <div class="container">
             <div data-tk-cat-rails></div>
             <div class="tk-rails-status" data-tk-rails-status aria-live="polite"></div>
@@ -120,20 +124,22 @@ so new categories appear automatically — nothing here references category name
     </section>
 
     {# ───────────── 4. Featured products ───────────── #}
-    {% set featured = settings.get('featured_products', []) %}
-    {% set featured_ids = [] %}
-    {% for item in featured %}
-        {% set featured_ids = featured_ids|merge([item.id is defined ? item.id : (item.value is defined ? item.value : item)]) %}
-    {% endfor %}
+    {#
+        The product picker's saved shape is not documented (and differs between unsaved and saved
+        settings), so pass it through as JSON and let home.js extract the product IDs.
+        Never join/print it in Twig: a nested array raises «Array to string conversion».
+    #}
+    {% set featured = settings.get('featured_products') %}
+    {% set has_featured = featured and featured|length %}
     <section class="tk-section" aria-labelledby="tk-featured-title"
              data-tk-rail
-             data-source="{{ featured_ids|length ? 'selected' : 'sales' }}"
-             {% if featured_ids|length %}data-source-value="[{{ featured_ids|join(',') }}]"{% endif %}
-             data-limit="{{ featured_ids|length ? featured_ids|length : 8 }}">
+             data-source="sales"
+             data-limit="8"
+             data-featured="{{ (has_featured ? featured|json_encode : '[]')|e('html_attr') }}">
         <div class="container">
             <header class="tk-section__head">
-                <p class="tk-eyebrow">{{ featured_ids|length ? 'اختيارنا لكم' : 'من بيانات المتجر' }}</p>
-                <h2 id="tk-featured-title" class="tk-section__title">{{ featured_ids|length ? 'المنتجات المميزة' : 'الأكثر طلبًا' }}</h2>
+                <p class="tk-eyebrow" data-tk-featured-eyebrow>{{ has_featured ? 'اختيارنا لكم' : 'من بيانات المتجر' }}</p>
+                <h2 id="tk-featured-title" class="tk-section__title" data-tk-featured-title>{{ has_featured ? 'المنتجات المميزة' : 'الأكثر طلبًا' }}</h2>
             </header>
             <div class="tk-rail" data-tk-rail-track>
                 {% for i in 1..4 %}<div class="tk-card-skeleton tk-skeleton" aria-hidden="true"></div>{% endfor %}
@@ -224,6 +230,7 @@ so new categories appear automatically — nothing here references category name
 
     {# ───────────── 9. About ───────────── #}
     {% set about_text = settings.get('about_text') %}
+    {% if about_text is iterable %}{% set about_text = about_text.ar is defined ? about_text.ar : null %}{% endif %}
     {% if cfg.about_title and (about_text or store.description) %}
         <section class="tk-section" aria-labelledby="tk-about-title">
             <div class="container tk-about">
