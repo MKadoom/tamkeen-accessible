@@ -246,6 +246,29 @@ body.theme-tamkeen {
       border-color: rgba(255, 255, 255, .18);
     }
 
+    .tk-topbar__contacts {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      min-width: 0;
+
+      a {
+        display: inline-flex;
+        align-items: center;
+        gap: .375rem;
+        min-height: 32px;
+        white-space: nowrap;
+
+        &:hover {
+          color: var(--tk-white);
+        }
+      }
+
+      i {
+        color: var(--tk-secondary);
+      }
+    }
+
     .s-contacts-topnav {
       flex-wrap: nowrap;
       overflow: hidden;
@@ -285,12 +308,25 @@ body.theme-tamkeen {
     flex-shrink: 0;
     margin-inline-end: 1.5rem;
 
+    // Raed caps .navbar-brand img at 40px; the store logo is a square with text, so give it room
     img {
       width: auto;
-      max-width: 150px;
-      max-height: 56px;
+      height: 64px;
+      max-width: 180px;
+      max-height: 64px;
       object-fit: contain;
     }
+  }
+
+  .tk-mainnav.fixed-pinned .tk-brand img {
+    height: 52px;
+    max-height: 52px;
+  }
+
+  // One row only: items that do not fit move into «المزيد» (main-menu.js)
+  .tk-main-menu .main-menu {
+    flex-wrap: nowrap;
+    white-space: nowrap;
   }
 
   .tk-main-menu .main-menu > li > a,
@@ -322,9 +358,11 @@ body.theme-tamkeen {
       }
     }
 
-    .tk-brand img {
-      max-width: 110px;
-      max-height: 44px;
+    .tk-brand img,
+    .tk-mainnav.fixed-pinned .tk-brand img {
+      height: 48px;
+      max-width: 120px;
+      max-height: 48px;
     }
   }
 }
@@ -729,6 +767,16 @@ body.theme-tamkeen {
 .tk-card-skeleton {
   min-height: 360px;
   border-radius: var(--tk-radius);
+}
+
+@keyframes tk-bar-in {
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: none;
+  }
 }
 
 @keyframes tk-shimmer {
@@ -1176,7 +1224,12 @@ body.theme-tamkeen {
 }
 
 @media (max-width: 640px) {
+  // Raed only reveals the bar under an ancestor `.hydrated`, which Salla does not always add;
+  // the WhatsApp bar must always be visible, so reveal it here.
   .is-sticky-product-bar .sticky-product-bar.tk-order-box {
+    transform: none;
+    opacity: 1;
+    animation: tk-bar-in .5s var(--tk-ease) both;
     margin: 0;
     border-radius: 18px 18px 0 0;
     border-width: 1px 0 0;
@@ -1184,6 +1237,8 @@ body.theme-tamkeen {
 
     .tk-order-box__qty {
       margin-bottom: 0;
+      transform: none;
+      opacity: 1;
     }
 
     .tk-order-box__hint {
@@ -1241,12 +1296,25 @@ body.theme-tamkeen {
 }
 
 /* ───────────── Footer ───────────── */
+// Raed's `.footer-is-light .store-footer` (theme setting) is more specific than `.tk-footer`;
+// the brand footer is always dark, so match that specificity.
+.theme-tamkeen .store-footer.tk-footer,
+.footer-is-light .store-footer.tk-footer {
+  background: var(--tk-dark);
+  color: rgba(255, 255, 255, .84);
+
+  .store-footer__inner {
+    background: transparent;
+    border-color: rgba(255, 255, 255, .1);
+  }
+}
+
 .tk-footer {
   margin-top: auto;
   background: var(--tk-dark);
   color: rgba(255, 255, 255, .84);
 
-  a {
+  a:not(.tk-btn) {
     color: inherit;
 
     &:hover {
@@ -1337,17 +1405,46 @@ body.theme-tamkeen {
   &__bottom {
     border-top: 1px solid rgba(255, 255, 255, .1);
     background: rgba(0, 0, 0, .12);
+
+    .copyright-text,
+    .copyright-text a {
+      color: rgba(255, 255, 255, .78);
+    }
   }
 
-  .s-contacts-title,
   .s-menu-footer-list a,
-  .s-contacts-item {
+  .s-contacts-item,
+  .s-contacts-item a {
     color: rgba(255, 255, 255, .84);
+  }
+
+  // Same look as .tk-footer__heading
+  .s-contacts-title {
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--tk-white);
   }
 
   .s-contacts-icon {
     color: var(--tk-secondary);
     border-color: rgba(255, 255, 255, .2);
+  }
+}
+
+/* WhatsApp buttons on dark brand surfaces: the WhatsApp green is too close to the
+   dark teal, so invert to white with WhatsApp-green text (≈7.6:1) */
+.tk-section--dark,
+.tk-contact,
+.tk-footer__cta {
+  .tk-btn--whatsapp {
+    background: var(--tk-white);
+    color: var(--tk-wa);
+
+    &:hover {
+      background: var(--tk-bg);
+      color: var(--tk-wa-hover);
+    }
   }
 }
 

@@ -16,18 +16,44 @@ so new categories appear automatically — nothing here references category name
 {% extends "layouts.master" %}
 {% block content %}
     {% set settings = theme.settings %}
+    {#
+        Salla returns null for settings the merchant has not saved yet (twilight.json defaults are only
+        applied after the theme editor is saved). These fallbacks are generated from twilight.json so both
+        stay identical. A setting saved as an empty string still hides its section.
+    #}
+    {% set tk_defaults = {
+        hero_eyebrow: "مؤسسة التمكين الشامل للتجارة",
+        hero_title: "بالتمكين لا إعاقة",
+        hero_subtitle: "حلول ومنتجات الوصول الشامل لذوي الإعاقة، لتأهيل البيئات العمرانية والحضرية والنقل لتكون صديقة للجميع.",
+        solutions_title: "حلول الوصول الشامل للمنشآت",
+        solutions_text: "نساعد الجهات الحكومية والخاصة والمنشآت التعليمية والصحية والتجارية على أن تكون بيئاتها ميسّرة وصديقة لذوي الإعاقة.",
+        solutions_items: "البيئات العمرانية | تجهيز المداخل والممرات والمرافق لتكون قابلة للوصول والاستخدام باستقلالية.\nالبيئات الحضرية | حلول ميسّرة للمساحات العامة والأرصفة والمواقف.\nالنقل الميسّر | منتجات وحلول تجعل التنقل آمنًا ومريحًا لذوي الإعاقة.\nالسلامة والإخلاء | معدات تساعد على إخلاء ذوي الإعاقة بأمان في حالات الطوارئ.",
+        services_title: "خدمات المؤسسة",
+        services_text: "نرافقك من فهم الاحتياج حتى وصول الحل المناسب.",
+        services_items: "توريد منتجات الوصول الشامل | أجهزة ومستلزمات مساعدة مختارة لذوي الإعاقة.\nالاستشارات | توجيه متخصص لاختيار الحلول الأنسب لاحتياج الفرد أو المنشأة.\nتأهيل المنشآت | المساعدة في تهيئة البيئات لتكون صديقة لذوي الإعاقة.\nطلبات المنشآت والجهات | تجهيز عروض للطلبات المؤسسية والكميات.",
+        journey_title: "من الاحتياج إلى الحل",
+        journey_items: "شاركنا الاحتياج | تواصل معنا عبر واتساب وأخبرنا عن الاحتياج أو المنتج المطلوب.\nنقترح الحل المناسب | نساعدك في اختيار المنتج أو الحل الأنسب مع توضيح التفاصيل.\nنؤكد الطلب | نرسل لك تفاصيل الطلب والسعر وطريقة الدفع والتوصيل.\nيصل الحل إليك | نتابع معك حتى استلام الطلب.",
+        about_title: "عن مؤسسة التمكين الشامل",
+        contact_title: "تواصل معنا واحصل على استشارة",
+        contact_text: "سواء كنت فردًا تبحث عن منتج مناسب، أو جهة تريد تأهيل منشأتها، فريقنا جاهز لمساعدتك."
+    } %}
+    {% set cfg = {} %}
+    {% for key, fallback in tk_defaults %}
+        {% set current = settings.get(key) %}
+        {% set cfg = cfg|merge({(key): current is null ? fallback : current}) %}
+    {% endfor %}
 
     {# ───────────── 1. Hero ───────────── #}
     {% set hero_image = settings.get('hero_image') %}
     <section class="tk-hero" aria-labelledby="tk-hero-title">
         <div class="container tk-hero__inner {{ hero_image ? 'tk-hero__inner--media' : '' }}">
             <div class="tk-hero__content">
-                {% if settings.get('hero_eyebrow') %}
-                    <p class="tk-eyebrow tk-eyebrow--light">{{ settings.get('hero_eyebrow') }}</p>
+                {% if cfg.hero_eyebrow %}
+                    <p class="tk-eyebrow tk-eyebrow--light">{{ cfg.hero_eyebrow }}</p>
                 {% endif %}
-                <h2 id="tk-hero-title" class="tk-hero__title">{{ settings.get('hero_title')|default('بالتمكين لا إعاقة') }}</h2>
-                {% if settings.get('hero_subtitle') %}
-                    <p class="tk-hero__text">{{ settings.get('hero_subtitle') }}</p>
+                <h2 id="tk-hero-title" class="tk-hero__title">{{ cfg.hero_title|default('بالتمكين لا إعاقة') }}</h2>
+                {% if cfg.hero_subtitle %}
+                    <p class="tk-hero__text">{{ cfg.hero_subtitle }}</p>
                 {% endif %}
                 <div class="tk-hero__actions">
                     <a href="#tk-categories" class="tk-btn tk-btn--accent tk-btn--lg">
@@ -44,7 +70,7 @@ so new categories appear automatically — nothing here references category name
 
             <div class="tk-hero__media" aria-hidden="{{ hero_image ? 'false' : 'true' }}">
                 {% if hero_image %}
-                    <img src="{{ hero_image }}" alt="{{ settings.get('hero_title')|default(store.name) }}" width="900" height="900" fetchpriority="high" loading="eager">
+                    <img src="{{ hero_image }}" alt="{{ cfg.hero_title|default(store.name) }}" width="900" height="900" fetchpriority="high" loading="eager">
                 {% else %}
                     {# Decorative brand emblem (no stock photo, no invented figures) #}
                     <div class="tk-hero__emblem">
@@ -121,20 +147,20 @@ so new categories appear automatically — nothing here references category name
     </div>
 
     {# ───────────── 6. Accessibility solutions for facilities ───────────── #}
-    {% if settings.get('solutions_title') %}
+    {% if cfg.solutions_title %}
         <section class="tk-section tk-section--dark" aria-labelledby="tk-solutions-title">
             <div class="container">
                 <header class="tk-section__head tk-section__head--split">
                     <div>
                         <p class="tk-eyebrow tk-eyebrow--light">للمنشآت والجهات</p>
-                        <h2 id="tk-solutions-title" class="tk-section__title">{{ settings.get('solutions_title') }}</h2>
+                        <h2 id="tk-solutions-title" class="tk-section__title">{{ cfg.solutions_title }}</h2>
                     </div>
-                    {% if settings.get('solutions_text') %}
-                        <p class="tk-section__lead">{{ settings.get('solutions_text') }}</p>
+                    {% if cfg.solutions_text %}
+                        <p class="tk-section__lead">{{ cfg.solutions_text }}</p>
                     {% endif %}
                 </header>
                 {% include 'pages.partials.tamkeen.info-cards' with {
-                    items_raw: settings.get('solutions_items'),
+                    items_raw: cfg.solutions_items,
                     icons: ['sicon-capitol-building', 'sicon-location', 'sicon-wheelchair', 'sicon-shield-check'],
                     variant: 'dark'
                 } %}
@@ -150,18 +176,18 @@ so new categories appear automatically — nothing here references category name
     {% endif %}
 
     {# ───────────── 7. Services ───────────── #}
-    {% if settings.get('services_title') %}
+    {% if cfg.services_title %}
         <section class="tk-section" aria-labelledby="tk-services-title">
             <div class="container">
                 <header class="tk-section__head">
                     <p class="tk-eyebrow">ماذا نقدم</p>
-                    <h2 id="tk-services-title" class="tk-section__title">{{ settings.get('services_title') }}</h2>
-                    {% if settings.get('services_text') %}
-                        <p class="tk-section__lead">{{ settings.get('services_text') }}</p>
+                    <h2 id="tk-services-title" class="tk-section__title">{{ cfg.services_title }}</h2>
+                    {% if cfg.services_text %}
+                        <p class="tk-section__lead">{{ cfg.services_text }}</p>
                     {% endif %}
                 </header>
                 {% include 'pages.partials.tamkeen.info-cards' with {
-                    items_raw: settings.get('services_items'),
+                    items_raw: cfg.services_items,
                     icons: ['sicon-packed-box', 'sicon-chat-conversation-alt', 'sicon-home-heart', 'sicon-briefcase']
                 } %}
             </div>
@@ -169,9 +195,9 @@ so new categories appear automatically — nothing here references category name
     {% endif %}
 
     {# ───────────── 8. From need to solution ───────────── #}
-    {% if settings.get('journey_title') %}
+    {% if cfg.journey_title %}
         {% set steps = [] %}
-        {% for line in settings.get('journey_items')|default('')|replace({"\r": ""})|split("\n") %}
+        {% for line in cfg.journey_items|default('')|replace({"\r": ""})|split("\n") %}
             {% if line|trim %}{% set steps = steps|merge([line]) %}{% endif %}
         {% endfor %}
         {% if steps|length %}
@@ -179,7 +205,7 @@ so new categories appear automatically — nothing here references category name
                 <div class="container">
                     <header class="tk-section__head">
                         <p class="tk-eyebrow">كيف نعمل</p>
-                        <h2 id="tk-journey-title" class="tk-section__title">{{ settings.get('journey_title') }}</h2>
+                        <h2 id="tk-journey-title" class="tk-section__title">{{ cfg.journey_title }}</h2>
                     </header>
                     <ol class="tk-steps">
                         {% for line in steps %}
@@ -198,7 +224,7 @@ so new categories appear automatically — nothing here references category name
 
     {# ───────────── 9. About ───────────── #}
     {% set about_text = settings.get('about_text') %}
-    {% if settings.get('about_title') and (about_text or store.description) %}
+    {% if cfg.about_title and (about_text or store.description) %}
         <section class="tk-section" aria-labelledby="tk-about-title">
             <div class="container tk-about">
                 <div class="tk-about__brand" aria-hidden="true">
@@ -206,7 +232,7 @@ so new categories appear automatically — nothing here references category name
                 </div>
                 <div class="tk-about__body">
                     <p class="tk-eyebrow">من نحن</p>
-                    <h2 id="tk-about-title" class="tk-section__title">{{ settings.get('about_title') }}</h2>
+                    <h2 id="tk-about-title" class="tk-section__title">{{ cfg.about_title }}</h2>
                     <div class="tk-about__text">
                         {% if about_text %}
                             {{ about_text|nl2br }}
@@ -225,9 +251,9 @@ so new categories appear automatically — nothing here references category name
             <div class="tk-contact">
                 <div class="tk-contact__body">
                     <p class="tk-eyebrow tk-eyebrow--light">الاستشارات والتواصل</p>
-                    <h2 id="tk-contact-title" class="tk-section__title">{{ settings.get('contact_title')|default('تواصل معنا') }}</h2>
-                    {% if settings.get('contact_text') %}
-                        <p class="tk-section__lead">{{ settings.get('contact_text') }}</p>
+                    <h2 id="tk-contact-title" class="tk-section__title">{{ cfg.contact_title|default('تواصل معنا') }}</h2>
+                    {% if cfg.contact_text %}
+                        <p class="tk-section__lead">{{ cfg.contact_text }}</p>
                     {% endif %}
                     <div class="tk-hero__actions">
                         {% include 'pages.partials.tamkeen.wa-button' with {
